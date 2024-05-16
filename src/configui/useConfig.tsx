@@ -60,7 +60,7 @@ export default function (editedPath: string, inputConfig: Config) {
     .map(([prop, val]) =>
       prop === "tags" && val.length === 1 ? ["tag", val[0]] : [prop, val]
     )
-    .filter(([_, val]) => val !== "" && val !== null && val !== []);
+    .filter(([_, val]) => val !== "" && val !== null);
   const outObj = Object.fromEntries(outObjEntries);
   const outConf =
     editedColIdx === null
