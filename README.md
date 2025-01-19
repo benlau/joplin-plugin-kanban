@@ -1,3 +1,6 @@
+> [!WARNING]  
+> This plugin now is deprecated in favour of the YesYouKan plugin. More information here: https://github.com/joplin/plugin-kanban/issues/57
+
 # Joplin Kanban Plugin
 
 This a plugin for the note taking app [Joplin](https://joplinapp.org/), which adds a flexible kanban board view for your notes, to help you organize your tasks.
