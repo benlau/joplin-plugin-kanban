@@ -94,8 +94,7 @@ export async function searchNotes(
  * Get a specific note by id in the kanban format.
  */
 export async function getNoteById(id: string): Promise<NoteData> {
-  const query = `id:${id}`;
-  return (await search(query))[0];
+  return  await joplin.data.get(["notes", id])
 }
 
 /**
