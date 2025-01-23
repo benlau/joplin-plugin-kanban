@@ -212,7 +212,7 @@ export default class Board {
    * Given a list of all notes in the notebook, return the latest board state,
    * i.e. sorted columns, messages, and hidden tags.
    */
-  async getBoardState(allNotes: NoteData[]): Promise<BoardState> {
+  getBoardState(allNotes: NoteData[]): BoardState {
     const config = this.parsedConfig;
     const state: BoardState = {
       name: this.boardName,

@@ -14,7 +14,6 @@ import {
 } from "./noteData";
 import { getRuleEditorTypes } from "./rules";
 import { getMdList, getMdTable } from "./markdown";
-import { pushUpdate, waitForUpdate } from "./pusUpdate";
 
 import type { Action } from "./actions";
 import type { ConfigUIData } from "./configui";
@@ -77,6 +76,10 @@ async function showConfigUI(targetPath: string) {
     const newYaml = result.formData.config.yaml;
     return newYaml;
   }
+}
+
+const refreshUI = () => {
+  // TBD: Implement this
 }
 
 let boardView: string | undefined;
@@ -143,13 +146,6 @@ async function handleKanbanMessage(msg: Action) {
   if (!openBoard) return;
 
   switch (msg.type) {
-    case "poll": {
-      console.log("got poll");
-      await waitForUpdate();
-      console.log("replying poll");
-      break;
-    }
-
     case "settings": {
       const { target } = msg.payload;
       const newConf = await showConfigUI(target);
@@ -207,7 +203,7 @@ async function handleKanbanMessage(msg: Action) {
         if (!openBoard || !openBoard.isValid) return;
         msg.payload.noteId = noteId;
         const allNotesOld = await searchNotes(openBoard.rootNotebookName);
-        const oldState: BoardState = await openBoard.getBoardState(allNotesOld);
+        const oldState: BoardState = openBoard.getBoardState(allNotesOld);
         for (const query of openBoard.getBoardUpdate(msg, oldState)) {
           await executeUpdateQuery(query);
         }
@@ -227,7 +223,7 @@ async function handleKanbanMessage(msg: Action) {
     default: {
       if (!openBoard.isValid) break;
       const allNotesOld = await searchNotes(openBoard.rootNotebookName);
-      const oldState: BoardState = await openBoard.getBoardState(allNotesOld);
+      const oldState: BoardState = openBoard.getBoardState(allNotesOld);
       const updates = openBoard.getBoardUpdate(msg, oldState);
       for (const query of updates) {
         await executeUpdateQuery(query);
@@ -236,7 +232,7 @@ async function handleKanbanMessage(msg: Action) {
   }
 
   const allNotesNew = await searchNotes(openBoard.rootNotebookName);
-  const newState: BoardState = await openBoard.getBoardState(allNotesNew);
+  const newState: BoardState = openBoard.getBoardState(allNotesNew);
   const currentYaml = getYamlConfig(
     (await getConfigNote(openBoard.configNoteId)).body
   );
@@ -319,7 +315,7 @@ joplin.plugins.register({
       if (!openBoard) return;
       if (openBoard.configNoteId === id) {
         if (!openBoard.isValid) await reloadConfig(id);
-        pushUpdate();
+        refreshUI();
       } else if ((await openBoard.isNoteIdOnBoard(id)) || newNoteChangedCb) {
         if (newNoteChangedCb && !startedHandlingNewNote) {
           startedHandlingNewNote = true;
@@ -329,11 +325,11 @@ joplin.plugins.register({
               (newNoteChangedCb as (id: string) => void)(id);
               newNoteChangedCb = undefined;
               startedHandlingNewNote = false;
-              pushUpdate();
+              refreshUI();
             }, 100); // For some reason this delay is required to make adding new notes reliable
           } else startedHandlingNewNote = false;
         }
-        pushUpdate();
+        refreshUI();
       }
     });
   },

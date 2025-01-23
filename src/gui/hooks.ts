@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-import type { NoteData, Message, BoardState } from "../types";
+import type { BoardState } from "../types";
 import type { Action } from "../actions";
 
 interface State {
@@ -17,24 +17,8 @@ export function useRemoteBoard(): [BoardState | undefined, DispatchFn] {
     setState({ board: newBoard });
   }, []);
 
-  const shouldPoll = useRef(true);
-  const poll = () => {
-    webviewApi.postMessage({ type: "poll" }).then((newBoard: BoardState) => {
-      if (!newBoard) {
-        shouldPoll.current = false;
-      } else {
-        setState({ board: newBoard });
-        if (shouldPoll.current === true) poll();
-      }
-    });
-  };
-
   useEffect(() => {
     dispatch({ type: "load" });
-    poll();
-    return () => {
-      shouldPoll.current = false;
-    };
   }, []);
 
   return [state.board, dispatch];
