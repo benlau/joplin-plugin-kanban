@@ -18,8 +18,12 @@ import { getMdList, getMdTable } from "./markdown";
 import type { Action } from "./actions";
 import type { ConfigUIData } from "./configui";
 import type { Config, BoardState } from "./types";
+import { JoplinService } from "./services/joplinService";
 
+const joplinService = new JoplinService();
+joplinService.start();
 let openBoard: Board | undefined;
+// FIXME: Remove this
 let newNoteChangedCb: ((noteId: string) => void) | undefined;
 
 // UI VIEWS
@@ -197,17 +201,13 @@ async function handleKanbanMessage(msg: Action) {
     }
 
     case "newNote": {
-      await joplin.commands.execute("newNote");
-      // TODO: this one's buggy
-      newNoteChangedCb = async (noteId: string) => {
-        if (!openBoard || !openBoard.isValid) return;
-        msg.payload.noteId = noteId;
-        const allNotesOld = await searchNotes(openBoard.rootNotebookName);
-        const oldState: BoardState = openBoard.getBoardState(allNotesOld);
-        for (const query of openBoard.getBoardUpdate(msg, oldState)) {
-          await executeUpdateQuery(query);
-        }
-      };
+      const allNotesOld = await searchNotes(openBoard.rootNotebookName);
+      const oldState: BoardState = openBoard.getBoardState(allNotesOld);
+      const newNoteId = await joplinService.createUntitledNote();
+      msg.payload.noteId = newNoteId;
+      for (const query of openBoard.getBoardUpdate(msg, oldState)) {
+        await executeUpdateQuery(query);
+      }
       break;
     }
 
