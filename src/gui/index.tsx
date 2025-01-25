@@ -48,6 +48,17 @@ function MessageBox({
 
 function App() {
   const [board, dispatch] = useRemoteBoard();
+
+  React.useEffect(() => {
+    webviewApi.onMessage((payload) => {
+      const { message } = payload;
+      if (message.type === "refresh") {
+        dispatch({ type: "poll" });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const notesToShow = board?.columns?.map((col) => ({
     ...col,
     notes: col.notes.map((note) => ({

@@ -110,3 +110,40 @@ export interface NoteData {
   order: number;
   createdTime: number;
 }
+
+export interface JoplinTag {
+  id: string;
+  parent_id: string;
+  title: string;
+}
+
+export class NoteDataNomad {
+
+  data: NoteData;
+
+  constructor(note: NoteData) {
+    this.data = note;
+  }
+
+  static fromJoplinNote(note: any) {
+    return new NoteDataNomad({
+      id: note.id,
+      title: note.title,
+      tags: [],
+      notebookId: note.parent_id,
+      isTodo: !!note.is_todo,
+      isCompleted: !!note.todo_completed,
+      due: note.todo_due,
+      order: note.order === 0 ? note.created_time : note.order,
+      createdTime: note.created_time,
+    });
+  }
+
+  setTagsFromJoplinTagList(tags: JoplinTag[]) {
+    this.data = {
+      ...this.data,
+      tags: tags.map(tag => tag.title)
+    }
+    return this;
+  }
+}

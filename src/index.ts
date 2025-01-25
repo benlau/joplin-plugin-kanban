@@ -19,12 +19,11 @@ import type { Action } from "./actions";
 import type { ConfigUIData } from "./configui";
 import type { Config, BoardState } from "./types";
 import { JoplinService } from "./services/joplinService";
+import { Debouncer } from "./utils/debouncer";
 
 const joplinService = new JoplinService();
 joplinService.start();
 let openBoard: Board | undefined;
-// FIXME: Remove this
-let newNoteChangedCb: ((noteId: string) => void) | undefined;
 
 // UI VIEWS
 
@@ -82,8 +81,22 @@ async function showConfigUI(targetPath: string) {
   }
 }
 
+const refreshUIDebouncer = new Debouncer(100);
+
 const refreshUI = () => {
-  // TBD: Implement this
+  refreshUIDebouncer.debounce(async () => {
+    if (boardView) {
+      joplin.views.panels.postMessage(boardView, {
+        type: "refresh"
+      });
+    }
+  }).catch((e) => {
+    if (e instanceof Error && e.name === "AbortError") {
+      // Ignore errors
+    } else {
+      console.error("Error refreshing UI", e);
+    }
+  });
 }
 
 let boardView: string | undefined;
@@ -219,7 +232,11 @@ async function handleKanbanMessage(msg: Action) {
       openBoard = undefined;
       return hideBoard();
 
-    // Propagete action to the active board
+    case "poll":
+      // No need to send to boardView
+      break;
+
+      // Propagete action to the active board
     default: {
       if (!openBoard.isValid) break;
       const allNotesOld = await searchNotes(openBoard.rootNotebookName);
@@ -301,12 +318,9 @@ joplin.plugins.register({
     // Have to call this on start otherwise layout from prevoius session is lost
     showBoard().then(hideBoard);
 
-    let startedHandlingNewNote = false;
     joplin.workspace.onNoteSelectionChange(
       async ({ value }: { value: [string?] }) => {
         const newNoteId = value?.[0] as string;
-        if (newNoteChangedCb && (await getNoteById(newNoteId)))
-          newNoteChangedCb = undefined;
         if (newNoteId) handleNewlyOpenedNote(newNoteId);
       }
     );
@@ -316,19 +330,7 @@ joplin.plugins.register({
       if (openBoard.configNoteId === id) {
         if (!openBoard.isValid) await reloadConfig(id);
         refreshUI();
-      } else if ((await openBoard.isNoteIdOnBoard(id)) || newNoteChangedCb) {
-        if (newNoteChangedCb && !startedHandlingNewNote) {
-          startedHandlingNewNote = true;
-          const note = await getNoteById(id);
-          if (note) {
-            setTimeout(() => {
-              (newNoteChangedCb as (id: string) => void)(id);
-              newNoteChangedCb = undefined;
-              startedHandlingNewNote = false;
-              refreshUI();
-            }, 100); // For some reason this delay is required to make adding new notes reliable
-          } else startedHandlingNewNote = false;
-        }
+      } else if (await openBoard.isNoteIdOnBoard(id)) {
         refreshUI();
       }
     });
