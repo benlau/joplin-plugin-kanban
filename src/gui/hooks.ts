@@ -9,7 +9,7 @@ interface State {
 
 export type DispatchFn = (action: Action) => Promise<void>;
 
-export function useRemoteBoard(): [BoardState | undefined, DispatchFn] {
+export function useRemoteBoard(): [BoardState | undefined, DispatchFn, DispatchFn] {
   const [state, setState] = useState<State>({});
 
   const dispatch: DispatchFn = useCallback(async (action: Action) => {
@@ -17,9 +17,13 @@ export function useRemoteBoard(): [BoardState | undefined, DispatchFn] {
     setState({ board: newBoard });
   }, []);
 
+  const send = useCallback(async (action: Action) => {
+    return webviewApi.postMessage(action);
+  }, []);
+
   useEffect(() => {
     dispatch({ type: "load" });
   }, []);
 
-  return [state.board, dispatch];
+  return [state.board, dispatch, send];
 }

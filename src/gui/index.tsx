@@ -8,6 +8,7 @@ import { DispatchFn, useRemoteBoard } from "./hooks";
 import { DragDropContext } from "./DragDrop";
 import Column from "./Column";
 import type { Message } from "../types";
+import { MainContext } from "./MainContext";
 
 export const DispatchContext = React.createContext<DispatchFn>(async () => {});
 export const IsWaitingContext = React.createContext<boolean>(false);
@@ -47,7 +48,7 @@ function MessageBox({
 }
 
 function App() {
-  const [board, dispatch] = useRemoteBoard();
+  const [board, dispatch, send] = useRemoteBoard();
 
   React.useEffect(() => {
     webviewApi.onMessage((payload) => {
@@ -122,10 +123,18 @@ function App() {
     <h1>Loading...</h1>
   );
 
+  const mainContextValue = React.useMemo(() => ({ 
+    dispatch,
+    send
+  }), [dispatch, send]);
+
+  // @TODO: Remove DispatchContext.Provider
   return (
-    <DispatchContext.Provider value={dispatch}>
-      <DragDropContext>{cont}</DragDropContext>
-    </DispatchContext.Provider>
+    <MainContext.Provider value={mainContextValue}>
+      <DispatchContext.Provider value={dispatch}>
+        <DragDropContext>{cont}</DragDropContext>
+      </DispatchContext.Provider>
+    </MainContext.Provider>
   );
 }
 

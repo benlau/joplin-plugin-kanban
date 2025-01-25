@@ -1,14 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 
-import { DispatchContext } from "./index";
 import Card from "./Card";
 import type { NoteData } from "../types";
+import { useMainContext } from "./MainContext";
 
 export default React.forwardRef<HTMLDivElement, { note: NoteData }>(
   ({ note }, ref) => {
-    const dispatch = useContext(DispatchContext);
+    const {send} = useMainContext();
     const handleClick = () => {
-      dispatch({
+      send({
         type: "openNote",
         payload: { noteId: note.id },
       });

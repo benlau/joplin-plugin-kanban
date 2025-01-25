@@ -163,6 +163,14 @@ async function handleKanbanMessage(msg: Action) {
   if (!openBoard) return;
 
   switch (msg.type) {
+    // Those actions do not update state, so we can return immediately
+    case "openNote": {
+      await joplin.commands.execute("openNote", msg.payload.noteId);
+      return;
+    }
+  }
+
+  switch (msg.type) {
     case "settings": {
       const { target } = msg.payload;
       const newConf = await showConfigUI(target);
@@ -205,11 +213,6 @@ async function handleKanbanMessage(msg: Action) {
         await reloadConfig(openBoard.configNoteId);
       }
       // New message action add here
-      break;
-    }
-
-    case "openNote": {
-      await joplin.commands.execute("openNote", msg.payload.noteId);
       break;
     }
 
