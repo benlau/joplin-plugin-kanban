@@ -168,6 +168,9 @@ async function handleKanbanMessage(msg: Action) {
       await joplin.commands.execute("openNote", msg.payload.noteId);
       return;
     }
+    case "openKanbanConfigNote": {
+      await joplin.commands.execute("openNote", openBoard.configNoteId);
+    }
   }
 
   switch (msg.type) {

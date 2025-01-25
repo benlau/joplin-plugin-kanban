@@ -61,6 +61,10 @@ export interface CloseAction {
   type: "close";
 }
 
+export interface OpenKanbanConfigNoteAction {
+  type: "openKanbanConfigNote";
+}
+
 export type Action =
   | MoveNoteAction
   | LoadAction
@@ -71,4 +75,5 @@ export type Action =
   | AddColumnAction
   | DeleteColAction
   | NewNoteAction
-  | CloseAction;
+  | CloseAction
+  | OpenKanbanConfigNoteAction;

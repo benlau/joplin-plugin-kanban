@@ -78,7 +78,11 @@ function App() {
         >
             <IoMdClose size="20px"/>
         </IconCont>
-        {board.name}
+        <BoardTitle
+          onClick={() => send({ type: "openKanbanConfigNote" })}
+        >
+          {board.name}
+        </BoardTitle>
         <IconCont
           onClick={() =>
             dispatch({ type: "settings", payload: { target: "filters" } })
@@ -174,7 +178,7 @@ const IconCont = styled("div")({
   alignItems: "center",
   borderRadius: "5px",
 
-  "&:nth-child(2)": {
+  "&:nth-child(3)": {
     marginLeft: "auto",
   },
   "&:hover": {
@@ -233,4 +237,14 @@ const MessageDetail = styled("code")({
   display: "block",
   paddingTop: "15px",
   whiteSpace: "pre-wrap",
+});
+
+const BoardTitle = styled("div")({
+  cursor: "pointer",
+  "&:hover": {
+    opacity: 0.7,
+  },
+  "&:active": {
+    opacity: 0.5,
+  },
 });
