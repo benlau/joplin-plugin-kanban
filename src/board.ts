@@ -10,6 +10,7 @@ import {
   Rule,
   Message,
   Config,
+  accessBoardState,
 } from "./types";
 
 interface Column {
@@ -330,8 +331,36 @@ export default class Board {
         }
 
         return queries;
+
+      case "insertNoteToColumn":
+        return this.insertNoteToColumn(action.payload.noteId, action.payload.columnName, action.payload.index, boardState);
     }
 
     return [];
+  }
+
+  insertNoteToColumn(noteId: string, columnName: string, index: number, boardState: BoardState) {
+    // Insert note to column without knowing the original column
+    const monad = accessBoardState(boardState);
+    const {note: existingNote, column: existingColumn} = monad.findNoteData(noteId);
+    const queries: UpdateQuery[] = [];
+    if (existingNote && existingColumn) {
+      const oldCol = this.allColumns.find(
+        ({ name }) => name === existingColumn.name
+      ) as Column;
+      queries.push(...oldCol.rules.flatMap((r) => r.unset(noteId)));
+    } else {
+      queries.push(...this.baseFilters.flatMap((r) => r.set(noteId)));
+    }
+    const newCol = this.allColumns.find(({ name }) => name === columnName) as Column;
+    const setQueries = newCol.rules.flatMap((r) => r.set(noteId));
+    queries.push(...setQueries);
+    
+    queries.push({
+      type: "put",
+      path: ["notes", noteId],
+      body: { order: index + 1 }
+    });
+    return queries;
   }
 }

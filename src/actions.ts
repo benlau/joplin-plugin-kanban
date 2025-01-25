@@ -65,6 +65,15 @@ export interface OpenKanbanConfigNoteAction {
   type: "openKanbanConfigNote";
 }
 
+export interface InsertNoteToColumnAction {
+  type: "insertNoteToColumn";
+  payload: {
+    noteId: string;
+    columnName: string;
+    index: number;
+  };
+}
+
 export type Action =
   | MoveNoteAction
   | LoadAction
@@ -76,4 +85,5 @@ export type Action =
   | DeleteColAction
   | NewNoteAction
   | CloseAction
-  | OpenKanbanConfigNoteAction;
+  | OpenKanbanConfigNoteAction
+  | InsertNoteToColumnAction;

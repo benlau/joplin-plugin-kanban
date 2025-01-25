@@ -74,14 +74,41 @@ export interface Rule {
   editorType: string;
 }
 
+export interface BoardStateColumn {
+  name: string;
+  notes: NoteData[];
+}
+
 export interface BoardState {
   name: string;
-  columns?: {
-    name: string;
-    notes: NoteData[];
-  }[];
+  columns?: BoardStateColumn[];
   hiddenTags: string[];
   messages: Message[];
+}
+
+export class BoardStateMonad {
+  data: BoardState;
+
+  constructor(boardState: BoardState) {
+    this.data = boardState;
+  }
+
+  findNoteData(noteId: string): {note: NoteData | undefined, column: BoardStateColumn | undefined} {
+    for (const column of this.data.columns ?? []) {
+      const note = column.notes.find(note => note.id === noteId);
+      if (note) {
+        return {note, column};
+      }
+    }
+    return {note: undefined, column: undefined};
+  }
+  findAllNoteDataInColumn(columnName: string): NoteData[] {
+    return this.data.columns?.find(column => column.name === columnName)?.notes || [];
+  }
+}
+
+export const accessBoardState = (boardState: BoardState) => {
+  return new BoardStateMonad(boardState);
 }
 
 // Joplin API related types
@@ -117,7 +144,7 @@ export interface JoplinTag {
   title: string;
 }
 
-export class NoteDataNomad {
+export class NoteDataMonad {
 
   data: NoteData;
 
@@ -126,7 +153,7 @@ export class NoteDataNomad {
   }
 
   static fromJoplinNote(note: any) {
-    return new NoteDataNomad({
+    return new NoteDataMonad({
       id: note.id,
       title: note.title,
       tags: [],

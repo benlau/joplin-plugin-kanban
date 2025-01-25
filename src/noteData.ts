@@ -1,6 +1,6 @@
 import joplin from "api";
 import { getUpdatedConfigNote } from "./parser";
-import { NoteData, ConfigNote, UpdateQuery, NoteDataNomad } from "./types";
+import { NoteData, ConfigNote, UpdateQuery, NoteDataMonad } from "./types";
 
 /**
  * Execute the given search query and return all matching notes in the kanban format.
@@ -96,7 +96,7 @@ export async function searchNotes(
 export async function getNoteById(id: string): Promise<NoteData> {
   const note = await joplin.data.get(["notes", id])
   const tags = await joplin.data.get(["notes", id, "tags"]);
-  return NoteDataNomad.fromJoplinNote(note).setTagsFromJoplinTagList(tags.items).data;
+  return NoteDataMonad.fromJoplinNote(note).setTagsFromJoplinTagList(tags.items).data;
 }
 
 /**
