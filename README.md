@@ -1,9 +1,9 @@
-> [!WARNING]  
-> This plugin now is deprecated in favour of the YesYouKan plugin. More information here: https://github.com/joplin/plugin-kanban/issues/57
+# Joplin KanMug Plugin
 
-# Joplin Kanban Plugin
+This is a fork of the original Joplin Kanban plugin, which was [archived](https://github.com/joplin/plugin-kanban/issues/57) on January 19, 2025 due to lack of maintainers. While the original plugin was deprecated in favor of YesYouKan plugin, this fork aims to provide an alternative by continuing development and maintenance of the original kanban functionality for Joplin.
 
-This a plugin for the note taking app [Joplin](https://joplinapp.org/), which adds a flexible kanban board view for your notes, to help you organize your tasks.
+> [!NOTE]  
+> This plugin maintains compatibility with the original kanban plugin's file format. You can switch between KanMug, the original Kanban plugin by enabling/disabling them in Joplin's plugin settings. Your kanban boards will work with any of these plugins.
 
 ![screenshot](images/kanban-screenshot.png)
 
