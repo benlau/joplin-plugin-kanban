@@ -9,7 +9,7 @@ This is a fork of the original Joplin Kanban plugin, which was [archived](https:
 
 ## Installation
 
-In Joplin, go to Tools > Options, then on the left select Plugins, search for "kanban" and click install. You can read more about Joplin plugins [here](https://joplinapp.org/plugins/).
+In Joplin, go to Tools > Options, then on the left select Plugins, search for "kanmug" and click install. You can read more about Joplin plugins [here](https://joplinapp.org/plugins/).
 
 ## Usage
 
