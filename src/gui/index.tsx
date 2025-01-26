@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { render } from "react-dom";
 import styled from "styled-components";
-import { IoMdSettings, IoMdAdd, IoMdClose } from "react-icons/io";
+import { IoMdSettings, IoMdAdd, IoMdClose, IoMdRefresh } from "react-icons/io";
 
 import { capitalize } from "../utils";
 import { DispatchFn, useRemoteBoard } from "./hooks";
@@ -12,6 +12,8 @@ import { MainContext } from "./MainContext";
 
 export const DispatchContext = React.createContext<DispatchFn>(async () => {});
 export const IsWaitingContext = React.createContext<boolean>(false);
+
+const REFRESH_DISABLED_TIME = 1000;
 
 function MessageBox({
   message,
@@ -49,6 +51,7 @@ function MessageBox({
 
 function App() {
   const [board, dispatch, send] = useRemoteBoard();
+  const [isRefreshDisabled, setIsRefreshDisabled] = useState(false);
 
   React.useEffect(() => {
     webviewApi.onMessage((payload) => {
@@ -68,6 +71,14 @@ function App() {
     })),
   }));
 
+  const handleRefresh = React.useCallback(() => {
+    if (!isRefreshDisabled) {
+      dispatch({ type: "poll" });
+      setIsRefreshDisabled(true);
+      setTimeout(() => setIsRefreshDisabled(false), REFRESH_DISABLED_TIME);
+    }
+  }, [dispatch, isRefreshDisabled]);
+
   const cont = board ? (
     <Container>
       <Header>
@@ -76,13 +87,19 @@ function App() {
             dispatch({ type: "close" })
           }}
         >
-            <IoMdClose size="20px"/>
+          <IoMdClose size="20px"/>
         </IconCont>
         <BoardTitle
           onClick={() => send({ type: "openKanbanConfigNote" })}
         >
           {board.name}
         </BoardTitle>
+
+        <IconCont
+          onClick={handleRefresh}
+        >
+          <IoMdRefresh size="25px" />
+        </IconCont>
         <IconCont
           onClick={() =>
             dispatch({ type: "settings", payload: { target: "filters" } })
