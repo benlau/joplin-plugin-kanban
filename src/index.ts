@@ -20,6 +20,7 @@ import type { ConfigUIData } from "./configui";
 import type { Config, BoardState } from "./types";
 import { JoplinService } from "./services/joplinService";
 import { Debouncer } from "./utils/debouncer";
+import { AsyncQueue } from "./utils/asyncQueue";
 
 const joplinService = new JoplinService();
 joplinService.start();
@@ -154,6 +155,7 @@ async function reloadConfig(noteId: string) {
 
 // EVENT HANDLERS
 
+const kanbanMessageQueue = new AsyncQueue();
 /**
  * Handle messages coming from the webview.
  *
@@ -170,9 +172,15 @@ async function handleKanbanMessage(msg: Action) {
     }
     case "openKanbanConfigNote": {
       await joplin.commands.execute("openNote", openBoard.configNoteId);
+      return;
     }
   }
+  return kanbanMessageQueue.enqueue(handleQueuedKanbanMessage, msg);
+}
 
+async function handleQueuedKanbanMessage(msg: Action) {
+
+  if (!openBoard) return;
   switch (msg.type) {
     case "settings": {
       const { target } = msg.payload;

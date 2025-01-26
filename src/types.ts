@@ -174,3 +174,10 @@ export class NoteDataMonad {
     return this;
   }
 }
+
+export class AbortedError extends Error {
+  constructor(message: string = 'Operation aborted') {
+      super(message);
+      this.name = 'AbortedError';
+  }
+}

@@ -1,5 +1,5 @@
-import { Debouncer, AbortedError } from "../src/utils/debouncer";
-
+import { Debouncer } from "../src/utils/debouncer";
+import { AbortedError } from "../src/types";
 describe("Debouncer", () => {
     jest.useFakeTimers();
 

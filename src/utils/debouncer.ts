@@ -1,9 +1,4 @@
-export class AbortedError extends Error {
-    constructor(message: string = 'Operation aborted') {
-        super(message);
-        this.name = 'AbortedError';
-    }
-}
+import { AbortedError } from "../types";
 
 export class Debouncer {
     private timer: NodeJS.Timeout | null = null;
