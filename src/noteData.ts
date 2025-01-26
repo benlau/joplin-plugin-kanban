@@ -38,11 +38,6 @@ async function search(query: string): Promise<NoteData[]> {
   let allNotes: any[] = [];
   let page = 1;
   while (true) {
-    console.log("data call get", query === "" ? ["notes"] : ["search"], {
-      query,
-      page,
-      fields,
-    });
     const { items: notes, has_more: hasMore }: Response = await joplin.data.get(
       query === "" ? ["notes"] : ["search"],
       { query, page, fields }
@@ -53,9 +48,6 @@ async function search(query: string): Promise<NoteData[]> {
     else page++;
   }
 
-  allNotes.forEach((note) =>
-    console.log("data call get", ["notes", note.id, "tags"])
-  );
   const inflightTagRequests = allNotes.map((note) =>
     joplin.data.get(["notes", note.id, "tags"])
   );
@@ -106,17 +98,12 @@ export async function executeUpdateQuery(updateQuery: UpdateQuery) {
   const { type, path, body = null } = updateQuery;
   if (type === "put" && path[0] === "notes") {
     // need to save updated_time
-    console.log("data call get", path, {
-      fields: ["updated_time", "user_updated_time"],
-    });
     const { updated_time, user_updated_time } = await joplin.data.get(path, {
       fields: ["updated_time", "user_updated_time"],
     });
     const patchedBody = { ...body, updated_time, user_updated_time };
-    console.log("data call put", path, null, patchedBody);
     await joplin.data.put(path, null, patchedBody);
   } else {
-    console.log("data call", type, path, null, body);
     await joplin.data[type](path, null, body);
   }
 }
@@ -128,7 +115,6 @@ export async function executeUpdateQuery(updateQuery: UpdateQuery) {
  */
 export function getConfigNote(noteId: string): Promise<ConfigNote> {
   const fields = ["id", "title", "parent_id", "body"];
-  console.log("data call get", ["notes", noteId], { fields });
   return joplin.data.get(["notes", noteId], { fields });
 }
 
@@ -148,7 +134,6 @@ export async function setConfigNote(
   if (selectedNoteId === noteId) {
     await joplin.commands.execute("editor.setText", newBody);
   }
-  console.log("data call put", ["notes", noteId], null, { body: newBody });
   await joplin.data.put(["notes", noteId], null, { body: newBody });
 }
 
@@ -156,7 +141,6 @@ export async function setConfigNote(
  * Get the id of a tag by name.
  */
 export async function getTagId(tagName: string): Promise<string | undefined> {
-  console.log("data call get", ["search"], { query: tagName, type: "tag" });
   const {
     items: [{ id = undefined } = {}],
   } = await joplin.data.get(["search"], { query: tagName, type: "tag" });
@@ -170,7 +154,6 @@ export async function getAllTags(): Promise<string[]> {
   let tags: string[] = [];
   let page = 1;
   while (true) {
-    console.log("data call get", ["tags"], { page });
     const {
       items: newTags,
       has_more: hasMore,
@@ -189,7 +172,6 @@ export async function getAllTags(): Promise<string[]> {
  * Create a new tag by name.
  */
 export async function createTag(tagName: string): Promise<string> {
-  console.log("data call post", ["tags"], null, { title: tagName });
   const result = await joplin.data.post(["tags"], null, { title: tagName });
   return result.id;
 }
@@ -206,10 +188,6 @@ export async function createNotebook(notebookPath: string): Promise<string> {
   let parentId = "";
   for (let i = 0; i < parts.length; i++) {
     const currentPath = "/" + parts.slice(0, i + 1);
-    console.log("data call post", ["folders"], null, {
-      title: parts[i],
-      parent_id: parentId,
-    });
     const id =
       (await resolveNotebookPath(currentPath)) ||
       (
@@ -286,8 +264,6 @@ export async function getAllNotebooks(): Promise<Folder[]> {
   let folders: Folder[] = [];
   let page = 1;
   while (true) {
-    console.log("data call get", ["folders"], { page });
-
     const {
       items: newFolders,
       has_more: hasMore,
