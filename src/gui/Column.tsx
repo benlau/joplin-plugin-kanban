@@ -88,14 +88,15 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
->
-      <DroppableArea
         draggingOver={isOver || isNoteDragOver}
+        >
+      <DroppableArea
         ref={dropRef}
         data-handler-id={handlerId}
+        isVisible={!isNoteDragOver}
       >
         {notes.map((note, idx) => (
-          <DraggableCard key={note.id} colName={name} note={note} index={idx} isVisible={!isNoteDragOver} />
+          <DraggableCard key={note.id} colName={name} note={note} index={idx} isVisible={true} />
         ))}
         </DroppableArea>
       </DroppableAreaContainer>
@@ -142,20 +143,23 @@ const AddIconCont = styled("span")({
   },
 });
 
-const DroppableAreaContainer = styled("div")({
+const DroppableAreaContainer = styled("div")<{ draggingOver: boolean }>(
+  ({draggingOver}) => ({
   minHeight: "200px",
   height: "100%",
   overflowY: "auto",
-});
+  border: draggingOver ? "royalblue solid 1px" : "unset",
+  boxShadow: draggingOver
+  ? "0px 0px 6px 3px rgba(4, 164, 255, 0.41) inset"
+  : "unset",
+}));
 
-const DroppableArea = styled("div")<{ draggingOver: boolean }>(
-  ({ draggingOver }) => ({
+const DroppableArea = styled("div")<{ isVisible?: boolean }>(
+  ({ isVisible = true }) => ({
     height: "100%",
     borderRadius: "5px",
-    // border: draggingOver ? "royalblue solid 1px" : "unset"
-    boxShadow: draggingOver
-      ? "0px 0px 6px 3px rgba(4, 164, 255, 0.41) inset"
-      : "unset",
     transition: "box-shadow linear 0.2s",
+    visibility: isVisible ? "visible" : "hidden",
+    pointerEvents: isVisible ? "auto" : "none"
   })
 );
