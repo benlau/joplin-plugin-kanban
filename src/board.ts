@@ -356,10 +356,15 @@ export default class Board {
     const setQueries = newCol.rules.flatMap((r) => r.set(noteId));
     queries.push(...setQueries);
     
+    const notesInCol = boardState.columns?.find(
+      (col) => col.name === columnName
+    )?.notes as NoteData[];
+    const notes = notesInCol.filter((note) => note.id !== noteId);
+
     queries.push({
       type: "put",
       path: ["notes", noteId],
-      body: { order: index + 1 }
+      body: { order: notes.length + 1 }
     });
     return queries;
   }
