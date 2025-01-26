@@ -312,8 +312,7 @@ async function handleNewlyOpenedNote(newNoteId: string) {
       await reloadConfig(newNoteId);
       if (openBoard && openBoard.isValid && originalOpenBoard!==openBoard) {
         // If user opened a new board, close and open again to refresh the content
-        hideBoard()
-        showBoard();
+        refreshUI();
       }
       return;
     }
