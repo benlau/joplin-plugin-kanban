@@ -39,3 +39,5 @@ jobs:
           package.json
           publish
           README.md
+          images/kanban-screenshot.png
+

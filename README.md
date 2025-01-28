@@ -106,3 +106,11 @@ The configured sort order will apply to all columns.
 
 If you want to know more about the workings of the plugin or its development check out the [original proposal](https://discourse.joplinapp.org/t/kanban-board-project/17469) and the [progress reports](https://discourse.joplinapp.org/t/kanban-board-project/17469)
 
+For an enhanced Joplin experience, I recommend using this plugin alongside [DDDot](https://github.com/benlau/joplin-plugin-dddot). DDDot provides useful features like:
+
+- Recent notes tracking
+- Note shortcuts
+- Quick scratchpad
+- And more...
+
+All conveniently accessible from a single sidebar. DDDot works seamlessly with KanMug to improve your note organization and workflow in Joplin.
