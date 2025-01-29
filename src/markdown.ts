@@ -59,6 +59,8 @@ export function getMdList(boardState: BoardState): string {
  */
 export function getMdLink(note: NoteData): string {
   if (note?.title !== undefined && note?.id !== undefined) {
-    return "[" + note.title + "](:/" + note.id + ")";
+    // Escape pipe characters in the title
+    const escapedTitle = note.title.replace(/\|/g, '\\|');
+    return "[" + escapedTitle + "](:/" + note.id + ")";
   } else return "";
 }
