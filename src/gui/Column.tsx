@@ -7,6 +7,9 @@ import { DispatchContext } from "./index";
 import ContextMenu from "./ContextMenu";
 import DraggableCard from "./DraggableCard";
 import { useDroppableArea } from "./DragDrop";
+import { useDebouncedFunc } from "../hooks/debouncer";
+
+const debounceTime = 100;
 
 export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   const dispatch = useContext(DispatchContext);
@@ -16,6 +19,11 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   });
 
   const [isNoteDragOver, setIsNoteOver] = React.useState(false);
+  const _setIsNoteOverDebounced = useDebouncedFunc(async (value: boolean) => setIsNoteOver(false), debounceTime);
+  const setIsNotOverDebounced = React.useCallback((value: boolean) => {
+    _setIsNoteOverDebounced(value).catch(() => {
+    });
+  }, [_setIsNoteOverDebounced]);
 
   const handleDragOver = (e: React.DragEvent) => {
     if (e.dataTransfer.types.includes('text/x-jop-note-ids')) {
@@ -23,12 +31,16 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
       e.preventDefault();
       e.stopPropagation();
       setIsNoteOver(true);
+      // For canelling previous action
+      setIsNotOverDebounced(true);
     }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsNoteOver(false);
+    // For canelling previous action
+    setIsNotOverDebounced(false);
     let noteIds: string[] = [];   
     try {
       noteIds = JSON.parse(e.dataTransfer.getData('text/x-jop-note-ids'));
@@ -50,13 +62,10 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsNoteOver(false);
-    }
+    // Don't set to false immediately
+    // The child item will take drag event and trigger drag leave
+    // but it won't handle it and will trigger drag over again
+    setIsNotOverDebounced(false);
   };
 
   const handleMenu = (selected: string) => {
