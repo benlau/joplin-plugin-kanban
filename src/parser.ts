@@ -82,9 +82,9 @@ export const validateConfig = (config: Config | {} | null): Message | null => {
 
     const isBacklog = "backlog" in col && col.backlog;
     for (const key in col) {
-      if (!(key in rules) && key !== "backlog" && key !== "name")
+      if (!(key in rules) && !["backlog", "name", "newNoteTitle"].includes(key))
         return configErr(`Invalid rule type "${key}" in column "${col.name}"`);
-      if (isBacklog && key !== "backlog" && key !== "name")
+      if (isBacklog && !["backlog", "name", "newNoteTitle"].includes(key))
         return configErr(
           `If a column is marked as backlog, it cannot have any other rules specified. Remove ${key} rule from ${col.name}!`
         );

@@ -1,6 +1,7 @@
 import { getYamlConfig } from "../src/parser";
 import Board from "../src/board";
 import type { BoardState, NoteData } from "../src/types";
+import { DateTime } from "luxon";
 
 jest.mock("../src/noteData", () => ({
   getTagId: jest.fn((t) => t),
@@ -94,12 +95,19 @@ const state = (
 
 describe("Board", () => {
   let dateNowSpy: jest.SpyInstance;
+  let luxonNowSpy: jest.SpyInstance;
+
   beforeAll(() => {
     dateNowSpy = jest.spyOn(Date, "now").mockImplementation(() => mockTime);
+    
+    luxonNowSpy = jest.spyOn(DateTime, "now").mockImplementation(() => 
+      DateTime.fromISO("2025-01-31T00:00:00.000Z") as DateTime<true>
+    );
   });
 
   afterAll(() => {
     dateNowSpy.mockRestore();
+    luxonNowSpy.mockRestore();
   });
 
   it("should return null if there is no kanban config section", async () => {
@@ -645,6 +653,208 @@ describe("Board", () => {
             type: "put",
             path: ["notes", "23"],
             body: { order: -1 },
+          });
+        });
+      });
+    });
+
+    describe("newNote action", () => {
+      it("should emit update to set column rules", async () => {
+        const board = (await createBoard({
+          id: "testid",
+          title: "testname",
+          body: testConfigBody,
+          parent_id: parentNb,
+        })) as Board;
+
+        const noteId = "new1";
+        const update = board.getBoardUpdate(
+          {
+            type: "newNote",
+            payload: {
+              noteId,
+              colName: "Ready for review"
+            },
+          },
+          state()
+        );
+
+        expect(update).toContainEqual({
+          type: "post",
+          path: ["tags", "ready", "notes"],
+          body: { id: noteId },
+        });
+      });
+
+      it("should emit update to set base filters", async () => {
+        const board = (await createBoard({
+          id: "testid",
+          title: "testname",
+          body: testConfigBody,
+          parent_id: parentNb,
+        })) as Board;
+
+        const noteId = "new1";
+        const update = board.getBoardUpdate(
+          {
+            type: "newNote",
+            payload: {
+              noteId,
+              colName: "Ready for review"
+            },
+          },
+          state()
+        );
+
+        expect(update).toContainEqual({
+          type: "post",
+          path: ["tags", "task", "notes"],
+          body: { id: noteId },
+        });
+      });
+
+      describe("newNoteTitle template", () => {
+        it("should render simple title template", async () => {
+          const configWithTemplate = `
+            columns:
+              - name: "Template Test"
+                newNoteTitle: "New Task"
+            filters:
+              rootNotebookPath: /
+              tag: task
+          `;
+
+          const board = (await createBoard({
+            id: "testid",
+            title: "testname", 
+            body: fenceConf(configWithTemplate),
+            parent_id: parentNb,
+          })) as Board;
+
+          const noteId = "new1";
+          const update = board.getBoardUpdate(
+            {
+              type: "newNote",
+              payload: {
+                noteId,
+                colName: "Template Test"
+              },
+            },
+            state()
+          );
+
+          expect(update).toContainEqual({
+            type: "put",
+            path: ["notes", noteId],
+            body: { title: "New Task" },
+          });
+        });
+
+        it("should render date in title template", async () => {
+          const configWithTemplate = `
+            columns:
+              - name: "Template Test"
+                newNoteTitle: "Task for <%= now() %>"
+            filters:
+              rootNotebookPath: /
+              tag: task
+          `;
+
+          const board = (await createBoard({
+            id: "testid",
+            title: "testname",
+            body: fenceConf(configWithTemplate),
+            parent_id: parentNb,
+          })) as Board;
+
+          const noteId = "new1";
+          const update = board.getBoardUpdate(
+            {
+              type: "newNote",
+              payload: {
+                noteId,
+                colName: "Template Test"
+              },
+            },
+            state()
+          );
+
+          expect(update).toContainEqual({
+            type: "put",
+            path: ["notes", noteId],
+            body: { title: "Task for 2025-01-31" },
+          });
+        });
+
+        it("should render future date in title template", async () => {
+          const configWithTemplate = `
+            columns:
+              - name: "Template Test"
+                newNoteTitle: "Due <%= now('2d') %>"
+            filters:
+              rootNotebookPath: /
+              tag: task
+          `;
+
+          const board = (await createBoard({
+            id: "testid",
+            title: "testname",
+            body: fenceConf(configWithTemplate),
+            parent_id: parentNb,
+          })) as Board;
+
+          const noteId = "new1";
+          const update = board.getBoardUpdate(
+            {
+              type: "newNote",
+              payload: {
+                noteId,
+                colName: "Template Test"
+              },
+            },
+            state()
+          );
+
+          expect(update).toContainEqual({
+            type: "put",
+            path: ["notes", noteId],
+            body: { title: "Due 2025-02-02" },
+          });
+        });
+
+        it("should render date with custom format", async () => {
+          const configWithTemplate = `
+            columns: 
+              - name: "Template Test"
+                newNoteTitle: "Task <%= now('', 'MM/dd') %>"
+            filters: 
+              rootNotebookPath: /
+              tag: task            
+          `;
+
+          const board = (await createBoard({
+            id: "testid",
+            title: "testname",
+            body: fenceConf(configWithTemplate),
+            parent_id: parentNb,
+          })) as Board;
+
+          const noteId = "new1";
+          const update = board.getBoardUpdate(
+            {
+              type: "newNote",
+              payload: {
+                noteId,
+                colName: "Template Test"
+              },
+            },
+            state()
+          );
+
+          expect(update).toContainEqual({
+            type: "put",
+            path: ["notes", noteId],
+            body: { title: "Task 01/31" },
           });
         });
       });

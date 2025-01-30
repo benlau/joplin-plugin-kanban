@@ -3,7 +3,7 @@
 This is a fork of the original Joplin Kanban plugin, which was [archived](https://github.com/joplin/plugin-kanban/issues/57) on January 19, 2025 due to lack of maintainers. While the original plugin was deprecated in favor of YesYouKan plugin, this fork aims to provide an alternative by continuing development and maintenance of the original kanban functionality for Joplin.
 
 > [!NOTE]  
-> This plugin maintains compatibility with the original kanban plugin's file format. You can switch between KanMug, the original Kanban plugin by enabling/disabling them in Joplin's plugin settings. Your kanban boards will work with any of these plugins.
+> This plugin maintains compatibility with the original kanban plugin's file format. If you haven't used any new features from KanMug (e.g. newNoteTitle), you can switch between KanMug and the original Kanban plugin by enabling/disabling them in Joplin's plugin settings. Your kanban boards will work with any of these plugins.
 
 ![screenshot](images/kanban-screenshot.png)
 
@@ -101,6 +101,32 @@ sort:
 Descending sort order may be specified by prefixing `-`, e.g., `-title`.
 
 The configured sort order will apply to all columns.
+
+### New Note Title
+
+You can use the `newNoteTitle` property to specify a template for the title of new notes. The template will be rendered using [EJS](https://ejs.co/) and will have access to the `now` function, which will render the current date and time.
+
+```yaml
+```kanban
+columns:
+  - name: "Template Test"
+    newNoteTitle: "New Task <%= now('1d', 'MM/dd') %>"
+```
+
+The `now` function has two arguments:
+
+- `delta`: A string representing the time difference to add to the current date and time. For example, `'1d'` adds one day, `'1h'` adds one hour, etc. You may pass in a string like `'1d'` or `'1h'` or `'1m'` or `'1s'` or `'1ms'`. If you pass '', it will return now. It is an optional argument.
+- `format`: A string representing the format of the date and time to render. For example, `'MM/dd'` renders the date in the format `01/31`. The default format is `yyyy-MM-dd`. You may find available formats [here](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens)
+
+Example usages:
+
+```yaml
+newNoteTitle: <%= now() %>
+newNoteTitle: New Task <%= now('1d') %>
+newNoteTitle: New Task <%= now('1d', 'MM/dd') %>
+newNoteTitle: New Task <%= now('', 'MM/dd') %>
+```
+
 
 ## Further information
 

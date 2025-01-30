@@ -92,7 +92,7 @@ const refreshUI = () => {
       });
     }
   }).catch((e) => {
-    if (e instanceof Error && e.name === "AbortError") {
+    if (e instanceof Error && e.name === "AbortedError") {
       // Ignore errors
     } else {
       console.error("Error refreshing UI", e);
@@ -175,7 +175,8 @@ async function handleKanbanMessage(msg: Action) {
       return;
     }
   }
-  return kanbanMessageQueue.enqueue(handleQueuedKanbanMessage, msg);
+  return kanbanMessageQueue.enqueue(handleQueuedKanbanMessage, msg).catch(
+    () => {});
 }
 
 async function handleQueuedKanbanMessage(msg: Action) {

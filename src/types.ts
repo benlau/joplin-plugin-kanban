@@ -32,6 +32,7 @@ export interface Config {
     [ruleName: string]: RuleValue;
     name: string;
     backlog?: boolean;
+    newNoteTitle?: string;
   }[];
   display: {
     markdown: string;

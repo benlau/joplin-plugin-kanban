@@ -1,8 +1,9 @@
 import { getNotebookPath, getNoteById } from "./noteData";
-
+import ms from "ms";
+import ejs from "ejs";
 import rules from "./rules";
 import { parseConfigNote } from "./parser";
-import { Action } from "./actions";
+import { Action, NewNoteAction } from "./actions";
 import {
   NoteData,
   UpdateQuery,
@@ -12,10 +13,12 @@ import {
   Config,
   accessBoardState,
 } from "./types";
+import { DateTime } from "luxon";
 
 interface Column {
   name: string;
   rules: Rule[];
+  newNoteTitle?: string;
 }
 
 /**
@@ -153,6 +156,7 @@ export default class Board {
       const newCol: Column = {
         name: col.name,
         rules: [],
+        newNoteTitle: col.newNoteTitle,
       };
       this.columnNames.push(col.name)
       this.allColumns.push(newCol);
@@ -278,18 +282,7 @@ export default class Board {
   getBoardUpdate(action: Action, boardState: BoardState) {
     switch (action.type) {
       case "newNote":
-        const col = this.allColumns.find(
-          ({ name }) => name === action.payload.colName
-        ) as Column;
-        const hasNotebookPathRule =
-          col.rules.find((r) => r.name === "notebookPath") !== undefined;
-        return [
-          ...this.baseFilters
-            .filter((r) => !hasNotebookPathRule || r.name !== "notebookPath")
-            .flatMap((r) => r.set(action.payload.noteId || "")),
-          ...col.rules.flatMap((r) => r.set(action.payload.noteId || "")),
-        ];
-
+        return this.newNote(action as NewNoteAction);
       case "moveNote":
         const { noteId, newColumnName, oldColumnName, newIndex } =
           action.payload;
@@ -345,6 +338,7 @@ export default class Board {
     const {note: existingNote, column: existingColumn} = monad.findNoteData(noteId);
     const queries: UpdateQuery[] = [];
     if (existingNote && existingColumn) {
+      // The note is already in a column, so we need to remove it from the old column
       const oldCol = this.allColumns.find(
         ({ name }) => name === existingColumn.name
       ) as Column;
@@ -366,6 +360,51 @@ export default class Board {
       path: ["notes", noteId],
       body: { order: notes.length + 1 }
     });
+
     return queries;
+  }
+
+  newNote(action: NewNoteAction) {
+    let newNoteQueries: UpdateQuery[] = [];
+    const col = this.allColumns.find(
+      ({ name }) => name === action.payload.colName
+    ) as Column;
+    const hasNotebookPathRule =
+      col.rules.find((r) => r.name === "notebookPath") !== undefined;
+  
+    newNoteQueries = newNoteQueries.concat([
+      ...this.baseFilters
+        .filter((r) => !hasNotebookPathRule || r.name !== "notebookPath")
+        .flatMap((r) => r.set(action.payload.noteId || "")),
+      ...col.rules.flatMap((r) => r.set(action.payload.noteId || "")),
+    ]);
+
+    if (col.newNoteTitle) {
+      const newNoteTitle = this.renderNewNoteTitle(col.newNoteTitle.toString());
+      newNoteQueries.push({
+        type: "put",
+        path: ["notes", action.payload.noteId || ""],
+        body: { title: newNoteTitle }
+      });
+    }
+    return newNoteQueries;
+  }
+
+  renderNewNoteTitle(template: string) {
+
+    const now = (delta?: string, format?: string) => {
+      const now = DateTime.now();
+      let diff = 0;
+      if (delta && delta.length > 0) {
+        diff = ms(delta as ms.StringValue);
+      }
+      const date = now.plus(diff);
+      return date.toFormat(format ?? "yyyy-MM-dd");
+    }
+
+    const compiledTemplate = ejs.compile(template, {});
+    return compiledTemplate({
+      now
+    });
   }
 }
