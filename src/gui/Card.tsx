@@ -2,14 +2,15 @@ import React from "react";
 import styled from "styled-components";
 import { IoMdPricetag } from "react-icons/io";
 import { IoCalendarOutline } from "react-icons/io5";
+import { IoTrashOutline } from "react-icons/io5";
 import moment from "moment";
 
 import type { NoteData } from "../types";
 
 const dateFmt = document.getElementById('date-fmt')?.innerHTML || ""
 
-export default React.forwardRef<HTMLDivElement, { note: NoteData }>(
-  ({ note }, ref) => {
+export default React.forwardRef<HTMLDivElement, { note: NoteData; onDelete?: () => void }>(
+  ({ note, onDelete }, ref) => {
     const { title, tags, due } = note;
 
     const renderExtra = (
@@ -37,7 +38,17 @@ export default React.forwardRef<HTMLDivElement, { note: NoteData }>(
 
     return (
       <CardDiv ref={ref}>
-        {title}
+        <CardContent>
+          {title}
+          {(
+            <TrashButton onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.();
+            }}>
+              <IoTrashOutline size="1.2rem" />
+            </TrashButton>
+          )}
+        </CardContent>
         <ExtrasContainer>
           {extras.map((e, idx) => renderExtra(idx, ...e))}
         </ExtrasContainer>
@@ -82,4 +93,37 @@ const ExtraItem = styled.div<{ color: string }>(({ color }) => ({
 
 const IconCont = styled.span({
   marginRight: "4px",
+});
+
+const CardContent = styled.div({
+  position: 'relative',
+  width: '100%',
+});
+
+const TrashButton = styled.button({
+  position: 'absolute',
+  top: '0',
+  right: '0',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: '4px',
+  color: '#fff',
+  opacity: 0,
+  transition: 'all 0.2s ease',
+  borderRadius: '4px',
+
+  '&:hover': {
+    opacity: 0.8,
+    transform: 'scale(1.1)',
+  },
+
+  '&:active': {
+    opacity: 0.7,
+    transform: 'scale(0.95)',
+  },
+
+  [`${CardDiv}:hover &`]: {
+    opacity: 1,
+  },
 });

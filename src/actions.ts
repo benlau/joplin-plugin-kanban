@@ -38,6 +38,13 @@ export interface OpenNoteAction {
   };
 }
 
+export interface DeleteNoteAction {
+  type: "deleteNote";
+  payload: {
+    noteId: string;
+  };
+}
+
 export interface AddColumnAction {
   type: "addColumn";
 }
@@ -81,6 +88,7 @@ export type Action =
   | SettingsAction
   | MessageAction
   | OpenNoteAction
+  | DeleteNoteAction
   | AddColumnAction
   | DeleteColAction
   | NewNoteAction

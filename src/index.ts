@@ -175,7 +175,8 @@ async function handleKanbanMessage(msg: Action) {
       return;
     }
   }
-  return kanbanMessageQueue.enqueue(handleQueuedKanbanMessage, msg);
+  return kanbanMessageQueue.enqueue(handleQueuedKanbanMessage, msg).catch(() => {
+  });
 }
 
 async function handleQueuedKanbanMessage(msg: Action) {
