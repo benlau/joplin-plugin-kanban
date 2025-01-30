@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 import type { BoardState } from "../types";
 import type { Action } from "../actions";
@@ -27,3 +27,15 @@ export function useRemoteBoard(): [BoardState | undefined, DispatchFn, DispatchF
 
   return [state.board, dispatch, send];
 }
+
+export function useRefState<T>(initialValue: T): [React.RefObject<T>, (value: T) => void] {
+  const [state, setState] = useState<T>(initialValue);
+  const ref = useRef<T>(state);
+
+  const dispatch = useCallback((value: T) => {
+    ref.current = value;
+    setState(value);
+  }, []);
+
+  return [ref, dispatch];
+} 

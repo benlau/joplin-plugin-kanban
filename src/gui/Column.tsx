@@ -8,8 +8,10 @@ import ContextMenu from "./ContextMenu";
 import DraggableCard from "./DraggableCard";
 import { useDroppableArea } from "./DragDrop";
 import { useDebouncedFunc } from "../hooks/debouncer";
+import { useRefState } from "./hooks"
 
-const debounceTime = 100;
+const dragEventDebounceTime = 100;
+const clickEventThrottleTime = 500;
 
 export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   const dispatch = useContext(DispatchContext);
@@ -19,7 +21,7 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   });
 
   const [isNoteDragOver, setIsNoteOver] = React.useState(false);
-  const _setIsNoteOverDebounced = useDebouncedFunc(async (value: boolean) => setIsNoteOver(false), debounceTime);
+  const _setIsNoteOverDebounced = useDebouncedFunc(async (value: boolean) => setIsNoteOver(false), dragEventDebounceTime);
   const setIsNotOverDebounced = React.useCallback((value: boolean) => {
     _setIsNoteOverDebounced(value).catch(() => {
     });
@@ -75,13 +77,21 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
       dispatch({ type: "deleteCol", payload: { colName: name } });
   };
 
-  const handleNewNote = () =>
+  const [isNewNoteDisabled, setIsNewNoteDisabled, ] = useRefState(false);
+
+  const handleNewNote = () => {
+    if (isNewNoteDisabled.current) return;
+    
+    setIsNewNoteDisabled(true);
+    setTimeout(() => setIsNewNoteDisabled(false), clickEventThrottleTime);
+
     dispatch({
       type: "newNote",
       payload: {
         colName: name,
       },
     });
+  };
 
   return (
     <Column>
