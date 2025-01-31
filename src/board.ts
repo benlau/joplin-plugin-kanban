@@ -74,6 +74,7 @@ export default class Board {
    */
   public parsedConfig: Config | null = null;
 
+  public baseTags: string[] = [];
   private baseFilters: Rule[] = [];
   private allColumns: Column[] = [];
   private nonBacklogColumns: Column[] = [];
@@ -137,15 +138,21 @@ export default class Board {
 
     // Process filters
     this.hiddenTags = [];
+    this.baseTags = [];
+
     for (const key in configObj.filters) {
       let val = configObj.filters[key];
       if (typeof val === "boolean") val = `${val}`;
       if (val && key in rules) {
         const rule = await rules[key](val, rootNotebookPath, configObj);
         this.baseFilters.push(rule);
-        if (key === "tag") this.hiddenTags.push(val as string);
-        else if (key === "tags")
+        if (key === "tag") {
+          this.hiddenTags.push(val as string);
+          this.baseTags.push(val as string);
+        }else if (key === "tags") {
           this.hiddenTags = [...this.hiddenTags, ...(val as string[])];
+          this.baseTags = [...this.baseTags, ...(val as string[])];
+        }
       }
     }
 

@@ -229,7 +229,7 @@ async function handleQueuedKanbanMessage(msg: Action) {
     }
 
     case "newNote": {
-      const allNotesOld = await searchNotes(openBoard.rootNotebookName);
+      const allNotesOld = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
       const oldState: BoardState = openBoard.getBoardState(allNotesOld);
       const newNoteId = await joplinService.createUntitledNote();
       msg.payload.noteId = newNoteId;
@@ -254,7 +254,7 @@ async function handleQueuedKanbanMessage(msg: Action) {
       // Propagete action to the active board
     default: {
       if (!openBoard.isValid) break;
-      const allNotesOld = await searchNotes(openBoard.rootNotebookName);
+      const allNotesOld = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
       const oldState: BoardState = openBoard.getBoardState(allNotesOld);
       const updates = openBoard.getBoardUpdate(msg, oldState);
       for (const query of updates) {
@@ -263,7 +263,7 @@ async function handleQueuedKanbanMessage(msg: Action) {
     }
   }
 
-  const allNotesNew = await searchNotes(openBoard.rootNotebookName);
+  const allNotesNew = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
   const newState: BoardState = openBoard.getBoardState(allNotesNew);
   const currentYaml = getYamlConfig(
     (await getConfigNote(openBoard.configNoteId)).body

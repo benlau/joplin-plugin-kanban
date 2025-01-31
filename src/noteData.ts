@@ -76,10 +76,13 @@ async function search(query: string): Promise<NoteData[]> {
  * Get all notes of interest using search. Can restrict search to a notebook.
  */
 export async function searchNotes(
-  rootNotebookName: string
+  rootNotebookName: string,
+  baseTags: string[]
 ): Promise<NoteData[]> {
-  const query = rootNotebookName === "" ? "" : `notebook:"${rootNotebookName}"`;
-  return search(query);
+  const rules = [] as string[];
+  if (rootNotebookName !== "") rules.push(`notebook:"${rootNotebookName}"`);
+  baseTags.forEach((tag) => rules.push(`tag:"${tag}"`));
+  return search(rules.join(" "));
 }
 
 /**
