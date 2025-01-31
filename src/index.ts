@@ -70,7 +70,7 @@ async function showConfigUI(targetPath: string) {
 
   const html = `
     <template id="data">
-      ${JSON.stringify(data)}
+      ${encodeURIComponent(JSON.stringify(data))}
     </template>
     <div id="root"></div>
   `;

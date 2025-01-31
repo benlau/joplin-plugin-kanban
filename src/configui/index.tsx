@@ -61,7 +61,7 @@ function App() {
   } = useMemo(
     () =>
       JSON.parse(
-        document.getElementById("data")?.innerHTML as string
+        decodeURIComponent(document.getElementById("data")?.innerHTML as string)
       ) as ConfigUIData,
     []
   );
