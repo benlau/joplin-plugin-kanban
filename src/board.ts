@@ -392,7 +392,7 @@ export default class Board {
       newNoteQueries.push({
         type: "put",
         path: ["notes", action.payload.noteId || ""],
-        body: { title: newNoteTitle }
+        body: { title: newNoteTitle, body: "" }
       });
     }
     return newNoteQueries;

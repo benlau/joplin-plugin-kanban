@@ -746,7 +746,7 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "put",
             path: ["notes", noteId],
-            body: { title: "New Task" },
+            body: { title: "New Task", body: "" },
           });
         });
 
@@ -782,7 +782,7 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "put",
             path: ["notes", noteId],
-            body: { title: "Task for 2025-01-31" },
+            body: { title: "Task for 2025-01-31", body: "" },
           });
         });
 
@@ -818,7 +818,7 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "put",
             path: ["notes", noteId],
-            body: { title: "Due 2025-02-02" },
+            body: { title: "Due 2025-02-02", body: "" },
           });
         });
 
@@ -854,7 +854,7 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "put",
             path: ["notes", noteId],
-            body: { title: "Task 01/31" },
+            body: { title: "Task 01/31", body: "" },
           });
         });
       });
