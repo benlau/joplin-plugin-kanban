@@ -754,7 +754,7 @@ describe("Board", () => {
           const configWithTemplate = `
             columns:
               - name: "Template Test"
-                newNoteTitle: "Task for <%= now() %>"
+                newNoteTitle: "Task for <%= today() %>"
             filters:
               rootNotebookPath: /
               tag: task
@@ -790,7 +790,7 @@ describe("Board", () => {
           const configWithTemplate = `
             columns:
               - name: "Template Test"
-                newNoteTitle: "Due <%= now('2d') %>"
+                newNoteTitle: "Due <%= today().add('2d') %>"
             filters:
               rootNotebookPath: /
               tag: task
@@ -826,7 +826,7 @@ describe("Board", () => {
           const configWithTemplate = `
             columns: 
               - name: "Template Test"
-                newNoteTitle: "Task <%= now('', 'MM/dd') %>"
+                newNoteTitle: "Task <%= today().format('MM/dd') %>"
             filters: 
               rootNotebookPath: /
               tag: task            

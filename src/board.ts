@@ -14,6 +14,7 @@ import {
   accessBoardState,
 } from "./types";
 import { DateTime } from "luxon";
+import { TemplateRenderer } from "./utils/templateRenderer";
 
 interface Column {
   name: string;
@@ -392,19 +393,7 @@ export default class Board {
 
   renderNewNoteTitle(template: string) {
 
-    const now = (delta?: string, format?: string) => {
-      const now = DateTime.now();
-      let diff = 0;
-      if (delta && delta.length > 0) {
-        diff = ms(delta as ms.StringValue);
-      }
-      const date = now.plus(diff);
-      return date.toFormat(format ?? "yyyy-MM-dd");
-    }
-
-    const compiledTemplate = ejs.compile(template, {});
-    return compiledTemplate({
-      now
-    });
+    const renderer = new TemplateRenderer(template);
+    return renderer.render();
   }
 }

@@ -104,29 +104,42 @@ The configured sort order will apply to all columns.
 
 ### New Note Title
 
-You can use the `newNoteTitle` property to specify a template for the title of new notes. The template will be rendered using [EJS](https://ejs.co/) and will have access to the `now` function, which will render the current date and time.
+You can use the `newNoteTitle` property to specify a template for the title of new notes. The template will be rendered using [EJS](https://ejs.co/) and will have access to the `today()` function, which will render the current date and time.
 
 ```yaml
 ```kanban
 columns:
   - name: "Template Test"
-    newNoteTitle: "New Task <%= now('1d', 'MM/dd') %>"
+    newNoteTitle: "New Task <%= today().add('1d').add('-7h').format('MM/dd') %>"
 ```
 
-The `now` function has two arguments:
+The title will be rendered as "New Task 01/31" if the current date is January 31, 2025.
 
-- `delta`: A string representing the time difference to add to the current date and time. For example, `'1d'` adds one day, `'1h'` adds one hour, etc. You may pass in a string like `'1d'` or `'1h'` or `'1m'` or `'1s'` or `'1ms'`. If you pass '', it will return now. It is an optional argument.
-- `format`: A string representing the format of the date and time to render. For example, `'MM/dd'` renders the date in the format `01/31`. The default format is `yyyy-MM-dd`. You may find available formats [here](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens)
+The `today()` returns the current date in the format `yyyy-MM-dd`.
+
+You could modify the value by calling the `add` and `format` methods.
+
+The `add` method takes a delta string as an argument. The delta string is a string that represents the time difference to add to the current date and time. For example, `'1d'` adds one day, `'1h'` adds one hour, etc. You may pass in a string like `'1d'` or `'1h'` or `'1m'` or `'1s'` or `'1ms'`. Negative values are also supported.
+
+The `format` method takes a format string as an argument. The format string is a string that represents the format of the date and time to render. For example, `'MM/dd'` renders the date in the format `01/31`. The default format is `yyyy-MM-dd`. You may find available formats [here](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens)
 
 Example usages:
 
 ```yaml
-newNoteTitle: <%= now() %>
-newNoteTitle: New Task <%= now('1d') %>
-newNoteTitle: New Task <%= now('1d', 'MM/dd') %>
-newNoteTitle: New Task <%= now('', 'MM/dd') %>
+newNoteTitle: <%= today() %>
+newNoteTitle: New Task <%= today().add('1d') %>
+newNoteTitle: New Task <%= today().add('1d').add('-7h').format('MM/dd') %>
+newNoteTitle: New Task <%= today().format('MM/dd') %>
 ```
 
+Tips:
+
+Let's say you have a kanban with a column for "Due Tomorrow". You want to create a new note on tomorrow's date. But you enjoy working in the midnight hour after 00:00, the actual newly note title will be 2 days from now. It looks weird for you. You can change the start time of a new note by adding a negative delta to the `today()` function.
+
+```yaml
+newNoteTitle: New Task <%= today().add('1d').add('-4h') %>
+```
+Add `-4h' if you think that a start time of a day is 04:00
 
 ## Further information
 
