@@ -118,6 +118,9 @@ export interface UpdateQuery {
   type: "post" | "delete" | "put";
   path: string[];
   body?: object;
+  info?: {
+    tags?: string[];
+  }
 }
 
 export interface ConfigNote {
@@ -167,10 +170,68 @@ export class NoteDataMonad {
     });
   }
 
+  static fromNewNote(noteId: string) {
+    return new NoteDataMonad({
+      id: noteId,
+      title: "",
+      tags: [],
+      notebookId: "",
+      isTodo: false,
+      isCompleted: false,
+      due: 0,
+      order: 0,
+      createdTime: Date.now(),
+    });
+  }
+
   setTagsFromJoplinTagList(tags: JoplinTag[]) {
     this.data = {
       ...this.data,
       tags: tags.map(tag => tag.title)
+    }
+    return this;
+  }
+
+  applyUpdateQuery(query: UpdateQuery) {
+    if (query.type === "put") {
+      if (query.path.length === 2 && 
+          query.path[0] === "notes" && 
+          query.path[1] === this.data.id) {
+        this.data = {
+          ...this.data,
+          ...query.body
+        }
+      }
+    } else if (query.type === "post") {
+
+      if (query.path.length === 3 && 
+          query.path[0] === "tags" && 
+          query.path[2] === "notes" &&
+          (query.body as any)?.id === this.data.id) {
+        if (query.info?.tags) {
+          const tags = new Set([...this.data.tags, ...query.info.tags]);
+          this.data = {
+            ...this.data,
+            tags: Array.from(tags)
+          }
+        }
+      }
+    } else if (query.type === "delete") {
+      if (query.path.length === 4 && 
+          query.path[0] === "tags" && 
+          query.path[2] === "notes" &&
+          query.path[3] === this.data.id) {
+        if (query.info?.tags) {
+          const tags = new Set(this.data.tags);
+          for (const tag of query.info.tags) {
+            tags.delete(tag);
+          }
+          this.data = {
+            ...this.data,
+            tags: Array.from(tags)
+          }
+        }
+      }
     }
     return this;
   }

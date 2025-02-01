@@ -9,7 +9,6 @@ import {
   executeUpdateQuery,
   getAllTags,
   getAllNotebooks,
-  getNoteById,
   searchNotes,
 } from "./noteData";
 import { getRuleEditorTypes } from "./rules";
@@ -17,10 +16,14 @@ import { getMdList, getMdTable } from "./markdown";
 
 import type { Action } from "./actions";
 import type { ConfigUIData } from "./configui";
-import type { Config, BoardState } from "./types";
+import { type Config, type BoardState, NoteData, NoteDataMonad } from "./types";
 import { JoplinService } from "./services/joplinService";
 import { Debouncer } from "./utils/debouncer";
 import { AsyncQueue } from "./utils/asyncQueue";
+import { tryWaitUntilTimeout } from "./utils/timer";
+
+const NEW_NOTE_WAIT_TIMEOUT = 40000;
+const NEW_NOTE_WAIT_INTERVAL = 1000;
 
 const joplinService = new JoplinService();
 joplinService.start();
@@ -165,7 +168,7 @@ async function handleKanbanMessage(msg: Action) {
   if (!openBoard) return;
 
   switch (msg.type) {
-    // Those actions do not update state, so we can return immediately
+    // Those actions do not update state, so it can return immediately
     case "openNote": {
       await joplin.commands.execute("openNote", msg.payload.noteId);
       return;
@@ -182,6 +185,7 @@ async function handleKanbanMessage(msg: Action) {
 async function handleQueuedKanbanMessage(msg: Action) {
 
   if (!openBoard) return;
+
   switch (msg.type) {
     case "settings": {
       const { target } = msg.payload;
@@ -233,9 +237,18 @@ async function handleQueuedKanbanMessage(msg: Action) {
       const oldState: BoardState = openBoard.getBoardState(allNotesOld);
       const newNoteId = await joplinService.createUntitledNote();
       msg.payload.noteId = newNoteId;
+      const noteMonad = NoteDataMonad.fromNewNote(newNoteId);
       for (const query of openBoard.getBoardUpdate(msg, oldState)) {
         await executeUpdateQuery(query);
+        noteMonad.applyUpdateQuery(query);
       }
+      // The note may be available but tags may not be available yet
+      // Let's cache it first.
+      const createdNote = noteMonad.data;
+      const timestamp = Date.now();
+      createdNote.order = timestamp;
+      createdNote.createdTime = timestamp;
+      openBoard.appendNoteCache(createdNote);
       break;
     }
 
@@ -259,11 +272,13 @@ async function handleQueuedKanbanMessage(msg: Action) {
       const updates = openBoard.getBoardUpdate(msg, oldState);
       for (const query of updates) {
         await executeUpdateQuery(query);
+        openBoard.executeUpdateQuery(query);
       }
     }
   }
-
-  const allNotesNew = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
+  const searchedNotes = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
+  openBoard.removeNoteCache(searchedNotes.map(note => note.id));
+  const allNotesNew = openBoard.mergeCachedNotes(searchedNotes);
   const newState: BoardState = openBoard.getBoardState(allNotesNew);
   const currentYaml = getYamlConfig(
     (await getConfigNote(openBoard.configNoteId)).body
@@ -312,7 +327,6 @@ async function handleNewlyOpenedNote(newNoteId: string) {
       const originalOpenBoard = openBoard;
       await reloadConfig(newNoteId);
       if (openBoard && openBoard.isValid && originalOpenBoard!==openBoard) {
-        // If user opened a new board, close and open again to refresh the content
         refreshUI();
       }
       return;

@@ -1,6 +1,10 @@
 import joplin from 'api';
+import { tryWaitUntilTimeout } from '../utils/timer';
+import { JoplinTag, NoteData, NoteDataMonad } from '../types';
 
 type NoteChangeListener = (noteId: string) => Promise<boolean>;
+
+const DEFAULT_TIMEOUT = 500;
 
 export class JoplinService {
     onNoteChangeListeners: NoteChangeListener[] = [];
@@ -49,6 +53,14 @@ export class JoplinService {
         });
     }
 
+    async getNoteDataById(noteId: string): Promise<NoteData> {
+        const note = await joplin.data.get(["notes", noteId]);
+        const tags = await joplin.data.get(["notes", noteId, "tags"]);
+        const noteData = NoteDataMonad.fromJoplinNote(
+            note).setTagsFromJoplinTagList(tags.items).data;
+        return noteData;
+    }
+
     openNote(noteId: string) {
         joplin.commands.execute("openNote", noteId);
     }
@@ -59,6 +71,25 @@ export class JoplinService {
 
     onNoteSelectionChange(listener: NoteChangeListener) {
         this.onNoteSelectionChangeListeners.push(listener);
-    }   
+    }
 
+    async waitUntilNoteAvailable(noteId: string, timeout: number = DEFAULT_TIMEOUT) {
+        try {
+            const promise = new Promise((resolve) => {
+                tryWaitUntilTimeout(async () => {
+                    const query = `id:${noteId}`;
+                    const note = await joplin.data.get(["search"], { query });
+                    if (note.items.length > 0) {
+                        resolve(note.items[0]);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }, timeout);           
+            });
+            return await promise;
+        } catch (e) {
+            return null;
+        }
+    }
 }

@@ -323,6 +323,9 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "delete",
             path: ["tags", "ready", "notes", noteId],
+            info: {
+              tags: ["ready"],
+            }
           });
         });
 
@@ -352,10 +355,16 @@ describe("Board", () => {
           expect(update).toContainEqual({
             type: "delete",
             path: ["tags", "done", "notes", noteId],
+            info: {
+              tags: ["done"],
+            }
           });
           expect(update).toContainEqual({
             type: "delete",
             path: ["tags", "completed", "notes", noteId],
+            info: {
+              tags: ["completed"],
+            }
           });
         });
 
@@ -450,6 +459,9 @@ describe("Board", () => {
             type: "post",
             path: ["tags", "ready", "notes"],
             body: { id: noteId },
+            info: {
+              tags: ["ready"],
+            }
           });
         });
 
@@ -480,11 +492,17 @@ describe("Board", () => {
             type: "post",
             path: ["tags", "done", "notes"],
             body: { id: noteId },
+            info: {
+              tags: ["done"],
+            }
           });
           expect(update).toContainEqual({
             type: "post",
             path: ["tags", "completed", "notes"],
             body: { id: noteId },
+            info: {
+              tags: ["completed"],
+            }
           });
         });
 
@@ -683,6 +701,9 @@ describe("Board", () => {
           type: "post",
           path: ["tags", "ready", "notes"],
           body: { id: noteId },
+          info: {
+            tags: ["ready"],
+          }
         });
       });
 
@@ -710,6 +731,9 @@ describe("Board", () => {
           type: "post",
           path: ["tags", "task", "notes"],
           body: { id: noteId },
+          info: {
+            tags: ["task"],
+          }
         });
       });
 

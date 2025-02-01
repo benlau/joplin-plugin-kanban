@@ -12,6 +12,7 @@ import {
   Message,
   Config,
   accessBoardState,
+  NoteDataMonad,
 } from "./types";
 import { DateTime } from "luxon";
 import { TemplateRenderer } from "./utils/templateRenderer";
@@ -75,6 +76,9 @@ export default class Board {
   public parsedConfig: Config | null = null;
 
   public baseTags: string[] = [];
+
+  public cachedNotes: NoteData[] = [];
+
   private baseFilters: Rule[] = [];
   private allColumns: Column[] = [];
   private nonBacklogColumns: Column[] = [];
@@ -92,6 +96,8 @@ export default class Board {
   private reset() {
     this.rootNotebookName = "";
     this.hiddenTags = [];
+    this.baseTags = [];
+    this.cachedNotes = [];
     this.columnNames = [];
     this.errorMessages = [];
     this.parsedConfig = null;
@@ -402,5 +408,28 @@ export default class Board {
 
     const renderer = new TemplateRenderer(template);
     return renderer.render();
+  }
+
+  appendNoteCache(note: NoteData) {
+    this.cachedNotes.push(note);
+  }
+
+  removeNoteCache(noteIds: string[]) {
+    this.cachedNotes = this.cachedNotes.filter(note => !noteIds.includes(note.id));
+  }
+
+  mergeCachedNotes(notes: NoteData[]): NoteData[] {
+    const newNotes = notes.filter(note => !this.cachedNotes.find(cachedNote => cachedNote.id === note.id));
+    return [...this.cachedNotes, ...newNotes];
+  }
+
+  executeUpdateQuery(query: UpdateQuery) {
+    this.cachedNotes = this.cachedNotes.map(
+      note => {
+        const noteMonad = new NoteDataMonad(note);
+        noteMonad.applyUpdateQuery(query);
+        return noteMonad.data;
+      }
+    );
   }
 }

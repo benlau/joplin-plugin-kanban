@@ -30,6 +30,9 @@ const rules: Record<string, RuleFactory> = {
           {
             type: "delete",
             path: ["tags", tagID, "notes", noteId],
+            info: {
+              tags: [tagName],
+            }
           },
         ],
         unset: (noteId: string) => [
@@ -37,6 +40,9 @@ const rules: Record<string, RuleFactory> = {
             type: "post",
             path: ["tags", tagID, "notes"],
             body: { id: noteId },
+            info: {
+              tags: [tagName],
+            }
           },
         ],
         editorType: "text",
@@ -53,12 +59,18 @@ const rules: Record<string, RuleFactory> = {
             type: "post",
             path: ["tags", tagID, "notes"],
             body: { id: noteId },
+            info: {
+              tags: [tagName],
+            }
           },
         ],
         unset: (noteId: string) => [
           {
             type: "delete",
             path: ["tags", tagID, "notes", noteId],
+            info: {
+              tags: [tagName],
+            }
           },
         ],
         editorType: "text",
