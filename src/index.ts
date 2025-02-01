@@ -14,7 +14,7 @@ import {
 import { getRuleEditorTypes } from "./rules";
 import { getMdList, getMdTable } from "./markdown";
 
-import type { Action } from "./actions";
+import type { Action, InsertNoteToColumnAction } from "./actions";
 import type { ConfigUIData } from "./configui";
 import { type Config, type BoardState, NoteData, NoteDataMonad } from "./types";
 import { JoplinService } from "./services/joplinService";
@@ -158,6 +158,25 @@ async function reloadConfig(noteId: string) {
 
 // EVENT HANDLERS
 
+async function updateBoardByAction(msg: Action) {
+  if (!openBoard) return;
+  const allNotesOld = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
+  const oldState: BoardState = openBoard.getBoardState(allNotesOld);
+  const updates = openBoard.getBoardUpdate(msg, oldState);
+  for (const query of updates) {
+    await executeUpdateQuery(query);
+    openBoard.executeUpdateQuery(query);
+  }
+}
+
+async function postInsertNoteToColumn(msg: InsertNoteToColumnAction) {
+  if (!openBoard) return;
+  const { noteId, columnName, index } = msg.payload;
+  let noteData = await joplinService.getNoteDataById(noteId);
+  noteData.order = Date.now();
+  openBoard.appendNoteCache(noteData);
+}
+
 const kanbanMessageQueue = new AsyncQueue();
 /**
  * Handle messages coming from the webview.
@@ -263,16 +282,12 @@ async function handleQueuedKanbanMessage(msg: Action) {
     case "poll":
       // No need to send to boardView
       break;
-
-      // Propagete action to the active board
+    
+    // Propagete action to the active board
     default: {
-      if (!openBoard.isValid) break;
-      const allNotesOld = await searchNotes(openBoard.rootNotebookName, openBoard.baseTags);
-      const oldState: BoardState = openBoard.getBoardState(allNotesOld);
-      const updates = openBoard.getBoardUpdate(msg, oldState);
-      for (const query of updates) {
-        await executeUpdateQuery(query);
-        openBoard.executeUpdateQuery(query);
+      await updateBoardByAction(msg);
+      if (msg.type === "insertNoteToColumn") {
+        await postInsertNoteToColumn(msg as InsertNoteToColumnAction);
       }
     }
   }

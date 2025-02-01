@@ -369,10 +369,12 @@ export default class Board {
     )?.notes as NoteData[];
     const notes = notesInCol.filter((note) => note.id !== noteId);
 
+    // Set order for the new note
+    const timestamp = Date.now();
     queries.push({
       type: "put",
       path: ["notes", noteId],
-      body: { order: notes.length + 1 }
+      body: { order: timestamp }
     });
 
     return queries;
