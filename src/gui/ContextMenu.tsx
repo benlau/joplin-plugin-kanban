@@ -33,7 +33,7 @@ export default function ({
 
   return (
     <>
-      {React.cloneElement(children, { onContextMenu: handleMenu })}
+      <div onContextMenu={handleMenu}>{children}</div>
       <FloatingMenu posX={posX} posY={posY}>
         {options.map((opt, idx) => (
           <MenuItem key={idx} onClick={() => onSelect(opt)}>

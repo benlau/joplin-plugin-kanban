@@ -3,10 +3,11 @@ import React from "react";
 import Card from "./Card";
 import type { NoteData } from "../types";
 import { useMainContext } from "./MainContext";
+import ContextMenu from "./ContextMenu";
 
 export default React.forwardRef<HTMLDivElement, { note: NoteData }>(
   ({ note }, ref) => {
-    const {send} = useMainContext();
+    const {send, dispatch} = useMainContext();
     const handleClick = () => {
       send({
         type: "openNote",
@@ -14,9 +15,20 @@ export default React.forwardRef<HTMLDivElement, { note: NoteData }>(
       });
     };
 
+    const handleMenu = React.useCallback((option: string) => {
+      if (option === "Remove from Kanban") {
+        dispatch({
+          type: "removeNoteFromKanban",
+          payload: { noteId: note.id },
+        });
+      }
+    }, []); 
+
     return (
       <div ref={ref} onClick={handleClick}>
-        <Card note={note} />
+        <ContextMenu options={["Remove from Kanban"]} onSelect={handleMenu}>
+            <Card note={note}/>
+        </ContextMenu>
       </div>
     );
   }

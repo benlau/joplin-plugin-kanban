@@ -341,9 +341,25 @@ export default class Board {
 
       case "insertNoteToColumn":
         return this.insertNoteToColumn(action.payload.noteId, action.payload.columnName, action.payload.index, boardState);
+      case "removeNoteFromKanban":
+        return this.removeNoteFromKanban(action.payload.noteId, boardState);
     }
 
     return [];
+  }
+
+  removeNoteFromKanban(noteId: string, boardState: BoardState) {
+    const monad = accessBoardState(boardState);
+    const {note: existingNote, column: existingColumn} = monad.findNoteData(noteId);
+    const queries: UpdateQuery[] = [];
+    if (existingNote && existingColumn) {
+      const oldCol = this.allColumns.find(
+        ({ name }) => name === existingColumn.name
+      ) as Column;
+      queries.push(...oldCol.rules.flatMap((r) => r.unset(noteId)));
+      queries.push(...this.baseFilters.flatMap((r) => r.unset(noteId)));
+    }
+    return queries;
   }
 
   insertNoteToColumn(noteId: string, columnName: string, index: number, boardState: BoardState) {

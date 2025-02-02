@@ -116,7 +116,7 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
         isVisible={!isNoteDragOver}
       >
         {notes.map((note, idx) => (
-          <DraggableCard key={note.id} colName={name} note={note} index={idx} isVisible={true} />
+          <DraggableCard key={note.id} colName={name} note={note} index={idx}/>
         ))}
         </DroppableArea>
       </DroppableAreaContainer>

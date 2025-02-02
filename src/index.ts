@@ -285,6 +285,17 @@ async function handleQueuedKanbanMessage(msg: Action) {
       break;
     }
 
+    case "removeNoteFromKanban": {
+      const confirmed = await showConfirmDialog(
+        "Are you sure you want to remove this note from the kanban board?"
+      );
+      
+      if (!confirmed) break;
+      
+      await updateBoardByAction(msg);
+      break;
+    }
+
     // New state is sent in any case, so load is a no-op
     case "load":
       break;

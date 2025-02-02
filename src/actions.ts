@@ -38,6 +38,13 @@ export interface OpenNoteAction {
   };
 }
 
+export interface RemoveNoteFromKanbanAction {
+  type: "removeNoteFromKanban";
+  payload: {
+    noteId: string;
+  };
+}
+
 export interface AddColumnAction {
   type: "addColumn";
 }
@@ -81,6 +88,7 @@ export type Action =
   | SettingsAction
   | MessageAction
   | OpenNoteAction
+  | RemoveNoteFromKanbanAction
   | AddColumnAction
   | DeleteColAction
   | NewNoteAction
