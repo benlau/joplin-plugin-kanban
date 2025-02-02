@@ -73,8 +73,9 @@ export default function ({ name, notes }: { name: string; notes: NoteData[] }) {
   const handleMenu = (selected: string) => {
     if (selected === "Edit")
       dispatch({ type: "settings", payload: { target: `columns.${name}` } });
-    else if (selected === "Delete")
+    else if (selected === "Delete") {
       dispatch({ type: "deleteCol", payload: { colName: name } });
+    }
   };
 
   const [isNewNoteDisabled, setIsNewNoteDisabled, ] = useRefState(false);

@@ -201,8 +201,15 @@ async function handleKanbanMessage(msg: Action) {
     () => {});
 }
 
-async function handleQueuedKanbanMessage(msg: Action) {
+/**
+ * Shows a confirmation dialog using Joplin's built-in message box
+ */
+async function showConfirmDialog(message: string): Promise<boolean> {
+  const result = await joplin.views.dialogs.showMessageBox(message);
+  return result === 0; // 0 = OK, 1 = Cancel
+}
 
+async function handleQueuedKanbanMessage(msg: Action) {
   if (!openBoard) return;
 
   switch (msg.type) {
@@ -218,6 +225,13 @@ async function handleQueuedKanbanMessage(msg: Action) {
 
     case "deleteCol": {
       if (!openBoard.parsedConfig) break;
+      
+      const confirmed = await showConfirmDialog(
+        `Are you sure you want to delete the column "${msg.payload.colName}"?`
+      );
+      
+      if (!confirmed) break;
+
       const colIdx = openBoard.parsedConfig.columns.findIndex(
         ({ name }) => name === msg.payload.colName
       );
